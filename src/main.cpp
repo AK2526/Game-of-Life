@@ -449,9 +449,8 @@ int main()
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
-
 	Shader shade("shaders/shader.vert", "shaders/shader.frag");
-
+	
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
 

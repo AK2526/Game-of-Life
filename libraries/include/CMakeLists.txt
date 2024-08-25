@@ -1,0 +1,1 @@
+add_library(basics camera.h Shader.h stb_image.h)
