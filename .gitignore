@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 
 build/
+Game of Life.sln
+Game of Life.vcxproj
+Game of Life.vcxproj.filters
