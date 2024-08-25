@@ -43,7 +43,7 @@ bool ERASE = false, ADD = false;
 glm::vec2 prevHover = glm::vec2(-5, 3);
 
 
-float sWHRatio = 800.0 / 600.0;
+float sWHRatio = (float)(800.0 / 600.0);
 float sWidth = 800, sHeight = 600;
 
 
@@ -62,8 +62,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 	sWHRatio = (float)width / (float)height;
-	sWidth = width;
-	sHeight = height;
+	sWidth = (float)width;
+	sHeight = (float)height;
 }
 
 int getCellInd(int x, int y)
@@ -105,7 +105,6 @@ void setCellStat(int x, int y, int col)
 
 	int i = getCellInd(x, y) * 16;
 
-	//std::cout << i << std::endl;
 	vertices[i + 3] = col;
 	vertices[i + 7] = col;
 	vertices[i + 11] = col;
@@ -193,19 +192,19 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos)
 	glm::vec3 m = glm::inverse(projection * transformed) * glm::vec4(xPos, -yPos, 0, 1);
 	if ((int)m.x != prevHover.x || (int)m.y != prevHover.y)
 	{
-		if (inGrid(prevHover.x, prevHover.y))
+		if (inGrid((int)prevHover.x, (int)prevHover.y))
 		{
-			setCellStat(prevHover.x, prevHover.y, IDLE);
+			setCellStat((int)prevHover.x, (int)prevHover.y, IDLE);
 		}
 			
 		prevHover = glm::vec2((int)m.x, (int)m.y);
-		if (inGrid(prevHover.x, prevHover.y))
+		if (inGrid((int)prevHover.x, (int)prevHover.y))
 		{
-			setCellStat(prevHover.x, prevHover.y, HOVER);
+			setCellStat((int)prevHover.x, (int)prevHover.y, HOVER);
 			if (ERASE)
-				setCellCol(prevHover.x, prevHover.y, DEAD);
+				setCellCol((int)prevHover.x, (int)prevHover.y, DEAD);
 			if (ADD)
-				setCellCol(prevHover.x, prevHover.y, ALIVE);
+				setCellCol((int)prevHover.x, (int)prevHover.y, ALIVE);
 		}
 			
 	}
@@ -226,19 +225,19 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && inGrid(prevHover.x, prevHover.y))
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && inGrid((int)prevHover.x, (int)prevHover.y))
 	{
 		ADD = true;
-		setCellCol(prevHover.x, prevHover.y, ALIVE);
+		setCellCol((int)prevHover.x, (int)prevHover.y, ALIVE);
 	}
 	else
 	{
 		ADD = false;
 	}
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && inGrid(prevHover.x, prevHover.y))
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && inGrid((int)prevHover.x, (int)prevHover.y))
 	{
 		ERASE = true;
-		setCellCol(prevHover.x, prevHover.y, DEAD);
+		setCellCol((int)prevHover.x, (int)prevHover.y, DEAD);
 	}
 	else
 	{
@@ -263,7 +262,7 @@ void updateNeighboursSimple(int index)
 	index = index - 1 - hCells;
 	cellNeighbours[index++] ++;
 	cellNeighbours[index++] ++;
-	cellNeighbours[index];
+	// cellNeighbours[index]; cuz i dont remmeber if i need this
 
 	index += hCells + hCells;
 	cellNeighbours[index--]++;
@@ -427,8 +426,6 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "First", NULL, NULL);
 	if (window == NULL)
@@ -512,53 +509,6 @@ int main()
 	//free image memory
 	stbi_image_free(data);
 
-	/*
-	
-	// Color attribute
-	// glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	// glEnableVertexAttribArray(1);
-	// Texture attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	/*
-	
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-
-
-	// NEW TEXTURE
-	unsigned int texture2;
-	glGenTextures(1, &texture2);
-
-	glBindTexture(GL_TEXTURE_2D, texture2);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	
-
-
-	shade.setFloat("mixval", 0.5);
-
-
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-
-	glm::mat4 view = glm::mat4(1.0f);
-
-
-
-	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
-	unsigned int transformLoc = glGetUniformLocation(shade.ID, "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model));
-	*/
-
 	glViewport(0, 0, 800, 600);
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -569,12 +519,11 @@ int main()
 	sWHRatio = (float)w / h;
 
 	transformed = glm::mat4(1.0f);
-	printMat4(transformed);
 
 	while (!glfwWindowShouldClose(window))
 	{
 		
-		float currentFrame = glfwGetTime();
+		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
@@ -584,7 +533,7 @@ int main()
 			if (timeUntilUpdate < 0)
 			{
 				updateCells();
-				timeUntilUpdate = 1.0/updateSpeed;
+				timeUntilUpdate = 1.0f/updateSpeed;
 			}
 		}
 
@@ -622,7 +571,7 @@ int main()
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
 
 
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0)

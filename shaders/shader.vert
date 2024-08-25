@@ -20,7 +20,7 @@ void main()
 
 	if (aCol == DEAD)
 	{
-		col = vec4(0.01, 0.0, 0.0, 1.0);
+		col = vec4(0.1, 0.02, 0.01, 1.0);
 	}
 	if (aCol == DYING)
 	{
