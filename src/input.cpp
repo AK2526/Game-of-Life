@@ -4,6 +4,7 @@
 #include <view.h>
 #include <glm/gtc/matrix_transform.hpp>
 
+glm::vec2 prevMouseloc = glm::vec2(0, 0);
 
 void processInput(GLFWwindow* window)
 {
@@ -66,12 +67,35 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		transformed = glm::translate(glm::mat4(1.0f), glm::vec3(dist, 0, 0)) * transformed;
 
+	// Check if we need to update grid while moving
+	glm::vec3 m = glm::inverse(projection * transformed) * glm::vec4(prevMouseloc.x, -prevMouseloc.y, 0, 1);
+	if ((int)m.x != prevHover.x || (int)m.y != prevHover.y)
+	{
+		if (inGrid((int)prevHover.x, (int)prevHover.y))
+		{
+			setCellStat((int)prevHover.x, (int)prevHover.y, IDLE);
+		}
+
+		prevHover = glm::vec2((int)m.x, (int)m.y);
+		if (inGrid((int)prevHover.x, (int)prevHover.y))
+		{
+			setCellStat((int)prevHover.x, (int)prevHover.y, HOVER);
+			if (ERASE)
+				setCellCol((int)prevHover.x, (int)prevHover.y, DEAD);
+			if (ADD)
+				setCellCol((int)prevHover.x, (int)prevHover.y, ALIVE);
+		}
+
+	}
+
+
 }
 
 void mouse_callback(GLFWwindow* window, double xPos, double yPos)
 {
 	xPos = xPos / sWidth * 2 - 1;
 	yPos = yPos / sHeight * 2 - 1;
+	prevMouseloc = glm::vec2(xPos, yPos);
 	glm::vec3 m = glm::inverse(projection * transformed) * glm::vec4(xPos, -yPos, 0, 1);
 	if ((int)m.x != prevHover.x || (int)m.y != prevHover.y)
 	{

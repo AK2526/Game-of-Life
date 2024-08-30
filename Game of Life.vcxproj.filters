@@ -36,6 +36,9 @@
     <ClCompile Include="src\cells.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\start.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag">

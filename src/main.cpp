@@ -20,9 +20,6 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-int wCells = 100;
-int hCells = 100;
-
 bool firstMouse = true;
 bool escPress = false;
 bool SPACEPRESS = false;
@@ -57,8 +54,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	sHeight = (float)height;
 }
 
+void initialize();
+
 int main()
 {
+
+	initialize();
 
 	for (int x = 0; x < wCells; x++)
 	{
@@ -92,13 +93,21 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "First", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(800, 600, "Game of Life", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
+	
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+	int xpos = (mode->width - 800) / 2;
+	int ypos = (mode->height - 600) / 2;
+
+	glfwSetWindowPos(window, xpos, ypos);
 
 	glfwMakeContextCurrent(window);
 
@@ -161,8 +170,6 @@ int main()
 	stbi_set_flip_vertically_on_load(true);
 	data = stbi_load("resources/cell.png", &width, &height, &nrChannels, 0);
 
-	if (data) { std::cout << "texture 1 successful \n"; };
-
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -174,15 +181,17 @@ int main()
 	stbi_image_free(data);
 
 	glViewport(0, 0, 800, 600);
-
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
 	
 	int w, h;
 	glfwGetWindowSize(window, &w, &h);
 	sWHRatio = (float)w / h;
 
 	transformed = glm::mat4(1.0f);
+
+	// Move it to the center
+    transformed = glm::translate(transformed, glm::vec3(-0.5f * wCells, -0.5f * hCells, 0.0f));
+	//Zoom out a bit
+	transformed = glm::scale(transformed, glm::vec3(0.7, 0.7, 1));
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -228,11 +237,6 @@ int main()
 		glBindVertexArray(VAO);
 		*/
 		glBindVertexArray(VAO);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		//glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		//glDrawArrays(GL_TRIANGLES, 0, 1);
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
