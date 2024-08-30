@@ -7,56 +7,47 @@
 #include <vector>
 #include <ctime>
 
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-struct keyPress
-{
-	bool shift = false;
-	bool control = false;
-};
-
-keyPress kp;
-
-bool press = false;
-float deltaTime = 0.0f;	// Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
-float timeUntilUpdate = 0.0f;
-int updateSpeed = 0;
-
-bool firstMouse = true;
-bool escPress = false;
-bool SPACEPRESS = false;
-std::vector<int> vertices;
-std::vector<int> cellNeighbours;
-
-const int wCells = 1000;
-const int hCells = 1000;
-
-const int DYING = 1, DEAD = 2, BORN = 3, ALIVE = 4;
-const int IDLE = 0, HOVER = 1;
-
-bool ERASE = false, ADD = false;
-
-glm::vec2 prevHover = glm::vec2(-5, 3);
-
-
-float sWHRatio = (float)(800.0 / 600.0);
-float sWidth = 800, sHeight = 600;
-
-
-glm::mat4 projection;
-
-glm::mat4 transformed;
+#include <input.h>
+#include <cells.h>
+#include <view.h>
 
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-void updateCells();
+int wCells = 100;
+int hCells = 100;
+
+bool firstMouse = true;
+bool escPress = false;
+bool SPACEPRESS = false;
+
+glm::mat4 projection;
+
+glm::mat4 transformed;
+
+bool ERASE = false, ADD = false;
+
+std::vector<int> cellNeighbours;
+std::vector<int> vertices;
+
+keyPress kp;
+
+
+bool press = false;
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+float timeUntilUpdate = 0.0f;
+int updateSpeed = 0;
+
+glm::vec2 prevHover = glm::vec2(-5, 3);
+float sWHRatio = (float)(800.0 / 600.0);
+float sWidth = 800, sHeight = 600;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -65,332 +56,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	sWidth = (float)width;
 	sHeight = (float)height;
 }
-
-int getCellInd(int x, int y)
-{
-	return x * hCells + y % hCells;
-}
-
-bool inGrid(int x, int y)
-{
-	if (0 <= x && x < wCells && 0 <= y  && y< hCells)
-	{
-		return true;
-	}
-	return false;
-}
-
-void setCellCol(int x, int y, int col)
-{
-	int i = getCellInd(x, y) * 16;
-	vertices[i + 2] = col;
-	vertices[i + 6] = col;
-	vertices[i + 10] = col;
-	vertices[i + 14] = col;
-
-	
-	glBufferSubData(GL_ARRAY_BUFFER, i * sizeof(int), sizeof(int) * 16, &vertices[i]);
-}
-
-void updateCol(int i, int col)
-{
-	vertices[i] = col;
-	vertices[i + 4] = col;
-	vertices[i + 8] = col;
-	vertices[i + 12] = col;
-}
-
-void setCellStat(int x, int y, int col)
-{
-
-	int i = getCellInd(x, y) * 16;
-
-	vertices[i + 3] = col;
-	vertices[i + 7] = col;
-	vertices[i + 11] = col;
-	vertices[i + 15] = col;
-	
-	glBufferSubData(GL_ARRAY_BUFFER, i * sizeof(int), sizeof(int) * 16, &vertices[i]);
-}
-
-void printMat4(glm::mat4 m)
-{
-	std::cout << "| " << m[0][0] << "\t" << m[0][1] << "\t" << m[0][2] << "\t" << m[0][3] << " |\n";
-	std::cout << "| " << m[1][0] << "\t" << m[1][1] << "\t" << m[1][2] << "\t" << m[1][3] << " |\n";
-	std::cout << "| " << m[2][0] << "\t" << m[2][1] << "\t" << m[2][2] << "\t" << m[2][3] << " |\n";
-	std::cout << "| " << m[3][0] << "\t" << m[3][1] << "\t" << m[3][2] << "\t" << m[3][3] << " |\n";
-	std::cout << "\n";
-}
-
-void processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_RELEASE)
-		escPress = false;
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && !escPress)
-	{
-		escPress = true;
-		if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-		{
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		}
-		else
-		{
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		}
-	}
-	if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-	{
-		SPACEPRESS = true;
-	}
-	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE && SPACEPRESS)
-	{
-		SPACEPRESS = false;
-		updateCells();
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && !kp.control)
-	{
-		kp.control = true;
-		updateSpeed = std::max(0, updateSpeed-1);
-	}
-	else if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_RELEASE)
-	{
-		kp.control = false;
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && !kp.shift)
-	{
-		kp.shift = true;
-		updateSpeed++;
-	}
-	else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-	{
-		kp.shift = false;
-	}
-		
-
-	float dist = deltaTime * 10;
-
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		transformed = glm::translate(glm::mat4(1.0f), glm::vec3(0,dist, 0 )) * transformed;
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		transformed = glm::translate(glm::mat4(1.0f), glm::vec3(0, -dist, 0)) * transformed;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		transformed = glm::translate(glm::mat4(1.0f), glm::vec3(-dist, 0, 0)) * transformed;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		transformed = glm::translate(glm::mat4(1.0f), glm::vec3(dist, 0, 0)) * transformed;
-
-}
-
-void mouse_callback(GLFWwindow* window, double xPos, double yPos)
-{
-	xPos = xPos/sWidth*2	- 1;
-	yPos = yPos / sHeight*2 - 1;
-	glm::vec3 m = glm::inverse(projection * transformed) * glm::vec4(xPos, -yPos, 0, 1);
-	if ((int)m.x != prevHover.x || (int)m.y != prevHover.y)
-	{
-		if (inGrid((int)prevHover.x, (int)prevHover.y))
-		{
-			setCellStat((int)prevHover.x, (int)prevHover.y, IDLE);
-		}
-			
-		prevHover = glm::vec2((int)m.x, (int)m.y);
-		if (inGrid((int)prevHover.x, (int)prevHover.y))
-		{
-			setCellStat((int)prevHover.x, (int)prevHover.y, HOVER);
-			if (ERASE)
-				setCellCol((int)prevHover.x, (int)prevHover.y, DEAD);
-			if (ADD)
-				setCellCol((int)prevHover.x, (int)prevHover.y, ALIVE);
-		}
-			
-	}
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	if (yoffset > 0.3)
-		yoffset = 0.5;
-	else if (yoffset < -0.3)
-		yoffset = -0.5;
-	yoffset *= 10;
-
-	yoffset *= deltaTime;
-	yoffset = std::pow(10, yoffset);
-	transformed = glm::scale(glm::mat4(1.0f), glm::vec3(yoffset, yoffset, yoffset)) * transformed;
-}
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && inGrid((int)prevHover.x, (int)prevHover.y))
-	{
-		ADD = true;
-		setCellCol((int)prevHover.x, (int)prevHover.y, ALIVE);
-	}
-	else
-	{
-		ADD = false;
-	}
-	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS && inGrid((int)prevHover.x, (int)prevHover.y))
-	{
-		ERASE = true;
-		setCellCol((int)prevHover.x, (int)prevHover.y, DEAD);
-	}
-	else
-	{
-		ERASE = false;
-	}
-
-}
-
-void addPoint(std::vector<int>& v, int x1, int y1, int stat)
-{
-	v.push_back( x1);
-	v.push_back( y1);
-	v.push_back(stat);
-	v.push_back(IDLE);
-}
-
-void updateNeighboursSimple(int index)
-{
-	cellNeighbours[index - 1] ++;
-	cellNeighbours[index + 1]++;
-
-	index = index - 1 - hCells;
-	cellNeighbours[index++] ++;
-	cellNeighbours[index++] ++;
-	// cellNeighbours[index]; cuz i dont remmeber if i need this
-
-	index += hCells + hCells;
-	cellNeighbours[index--]++;
-	cellNeighbours[index--]++;
-	cellNeighbours[index]++;
-	
-}
-
-void updateNeighboursComplex(int index)
-{
-	int x = index / hCells;
-	int y = index % hCells;
-
-	int left = (x - 1 + wCells) % wCells;
-	int right = (x + 1 + wCells) % wCells;
-	int up = (y + 1 + hCells) % hCells;
-	int down = (y - 1 + hCells) % hCells; 
-
-	cellNeighbours[getCellInd(left, up)]++;
-	cellNeighbours[getCellInd(x, up)]++;
-	cellNeighbours[getCellInd(right, up)]++;
-	cellNeighbours[getCellInd(left, y)]++;
-	cellNeighbours[getCellInd(right, y)]++;
-	cellNeighbours[getCellInd(left, down)]++;
-	cellNeighbours[getCellInd(x, down)]++;
-	cellNeighbours[getCellInd(right, down)]++;
-
-}
-
-void updateCells()
-{
-
-	cellNeighbours = std::vector<int>(wCells * hCells, 0);
-
-	int i = 2;
-	int j;
-
-	for (j = 0; j < hCells; j++)
-	{
-		if (vertices[i] == ALIVE || vertices[i] == BORN)
-			updateNeighboursComplex(j);
-		i += 16;
-	}
-
-	for (int k = 1; k < wCells-1; k++)
-	{
-		if (vertices[i] == ALIVE || vertices[i] == BORN)
-			updateNeighboursComplex(j);
-		j++;
-		i += 16;
-		for (int l = 1; l < hCells - 1; l++)
-		{
-			if (vertices[i] == ALIVE || vertices[i] == BORN)
-				updateNeighboursSimple(j);
-			j++;
-			i += 16;
-		}
-		if (vertices[i] == ALIVE || vertices[i] == BORN)
-			updateNeighboursComplex(j);
-		j++;
-		i += 16;
-	}
-	for (int k = 0; k < hCells; k++)
-	{
-		if (vertices[i] == ALIVE || vertices[i] == BORN)
-			updateNeighboursComplex(j);
-			j++;
-			i += 16;
-	}
-
-
-
-	j = -1;
-
-	for (int i = 2; i < vertices.size(); i += 16)
-	{
-		
-		j++;
-		// IF you are a dead cell
-		if ((vertices[i] == DEAD || vertices[i] == DYING) && cellNeighbours[j] == 3)
-		{
-			updateCol(i, BORN);
-			continue;
-		}
-		else if (vertices[i] == DYING)
-		{
-			updateCol(i, DEAD);
-			continue;
-		}
-
-		if ((vertices[i] == ALIVE || vertices[i] == BORN) && (cellNeighbours[j] < 2 || cellNeighbours[j] > 3))
-		{
-			updateCol(i, DYING);
-			continue;
-		}
-		else if (vertices[i] == BORN)
-			updateCol(i, ALIVE);
-		
-	}
-	glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(int), &vertices[0]);
-
-}
-
-
-void printVBOData(GLuint vbo, GLsizei size) {
-	// Bind the VBO
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-	// Map the buffer to client memory
-	int* mappedData = static_cast<int*>(glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY));
-	if (mappedData) {
-		// Print the data
-		for (GLsizei i = 0; i < size; ++i) {
-			std::cout << mappedData[i] << " ";
-		}
-		std::cout << std::endl;
-
-		// Unmap the buffer
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-	}
-	else {
-		std::cerr << "Failed to map VBO" << std::endl;
-	}
-
-	// Unbind the VBO
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
 
 int main()
 {

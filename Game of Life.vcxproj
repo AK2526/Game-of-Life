@@ -82,6 +82,8 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)libraries\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)libraries\lib;$(LibraryPath)</LibraryPath>
+    <SourcePath>$(SolutionDir)src;$(SourcePath)</SourcePath>
+    <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -145,13 +147,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\cells.cpp" />
+    <ClCompile Include="src\cellupdates.cpp" />
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\input.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\stb.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libraries\include\camera.h" />
+    <ClInclude Include="libraries\include\cells.h" />
+    <ClInclude Include="libraries\include\input.h" />
+    <ClInclude Include="libraries\include\Shader.h" />
+    <ClInclude Include="libraries\include\stb_image.h" />
+    <ClInclude Include="libraries\include\view.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
