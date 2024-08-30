@@ -1,1 +1,1 @@
-add_library(basics camera.h Shader.h stb_image.h input.h cells.h view.h)
+add_library(basics Shader.h stb_image.h input.h cells.h view.h)
