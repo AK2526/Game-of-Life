@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <ctime>
+#include <string>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -93,7 +94,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Game of Life", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(800, 600, "Game of Life (Space - Step, Left Shift/Ctrl - Speed up/down) Speed: 0", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create window" << std::endl;
@@ -193,12 +194,23 @@ int main()
 	//Zoom out a bit
 	transformed = glm::scale(transformed, glm::vec3(0.7, 0.7, 1));
 
+	int nextSecond = 1;
+
 	while (!glfwWindowShouldClose(window))
 	{
+
+
 		
 		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+		if (currentFrame > nextSecond)
+		{
+			nextSecond++;
+			std::string title = "Game of Life (Space - Step, Left Shift/Ctrl - Speed up/down) Speed: " + std::to_string(updateSpeed) + ", FPS: " + std::to_string((double)(1 / deltaTime));
+			glfwSetWindowTitle(window, title.c_str());
+		}
 
 		if (updateSpeed != 0)
 		{
