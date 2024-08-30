@@ -19,7 +19,7 @@ foreach(DIR ${DIRECTORIES_TO_COPY})
 endforeach()
 
 
-add_executable(${PROJECT_NAME} src/main.cpp src/glad.c src/stb.cpp src/input.cpp src/cellupdates.cpp src/cells.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/glad.c src/stb.cpp src/input.cpp src/cellupdates.cpp src/cells.cpp src/start.cpp)
 
 target_link_libraries(${PROJECT_NAME}
     ${CMAKE_SOURCE_DIR}/libraries/lib/glfw3.lib
